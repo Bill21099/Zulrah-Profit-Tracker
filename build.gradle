@@ -1,26 +1,40 @@
-plugins { id 'java' }
+plugins {
+    id 'java'
+    id 'application'
+}
 
 repositories {
-    mavenLocal()
     maven { url = 'https://repo.runelite.net'; content { includeGroupByRegex('net\\.runelite.*') } }
     mavenCentral()
 }
 
 def runeLiteVersion = 'latest.release'
-def pluginMainClass = 'com.zully.zulrah.DevClientLauncher'
 dependencies {
     compileOnly "net.runelite:client:${runeLiteVersion}"
-    compileOnly 'org.projectlombok:lombok:1.18.30'
-    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    runtimeOnly "net.runelite:client:${runeLiteVersion}"
     testImplementation 'junit:junit:4.13.2'
     testImplementation "net.runelite:client:${runeLiteVersion}"
 }
-group = 'com.zully'
-tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release.set(11) }
+group = 'com.zulprofit'
+version = '1.0.0'
 
-tasks.register('run', JavaExec) {
+// Keep the plugin descriptor in the JAR so RuneLite's plugin loader can discover it.
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release.set(11)
+}
+
+// Launch the RuneLite client for local development with `gradlew run`.
+application {
+    mainClass = 'com.zulprofit.zulrah.DevClientLauncher'
+}
+
+tasks.named('run', JavaExec).configure {
     classpath = sourceSets.test.runtimeClasspath
-    mainClass = pluginMainClass
-    jvmArgs '-ea'
+    enableAssertions = true
     args '--developer-mode', '--debug'
 }
+
